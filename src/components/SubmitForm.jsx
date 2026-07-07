@@ -64,7 +64,7 @@ export default function SubmitForm({ initialLocation, onSubmit, onClose }) {
   const hasLocation = form.lat && form.lng
 
   return (
-    <div className="spot-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="spot-overlay">
       <div className="spot-modal sf-modal">
 
         {/* ── Header ── */}
