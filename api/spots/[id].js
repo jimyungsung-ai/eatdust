@@ -11,9 +11,7 @@ module.exports = async (req, res) => {
   const idx = store.spots.findIndex(s => s.id === id)
   if (idx === -1) return res.status(404).json({ error: 'Not found' })
 
-  if (req.method === 'GET') {
-    return res.status(200).json(store.spots[idx])
-  }
+  if (req.method === 'GET')   return res.status(200).json(store.spots[idx])
 
   if (req.method === 'PATCH') {
     const body = await parseBody(req)

@@ -1,4 +1,4 @@
-async function parseBody(req) {
+module.exports = function parseBody(req) {
   return new Promise((resolve) => {
     let data = ''
     req.on('data', (chunk) => { data += chunk })
@@ -7,5 +7,3 @@ async function parseBody(req) {
     })
   })
 }
-
-module.exports = parseBody

@@ -1,9 +1,8 @@
-// Shared in-memory store — seeded from db.json at cold start.
-// Data persists within a single serverless container lifetime.
-// On Vercel cold starts, data resets to the seeded values.
-const db = require('../db.json')
+const { readFileSync } = require('fs')
+const { join } = require('path')
 
 if (!global.__store) {
+  const db = JSON.parse(readFileSync(join(__dirname, '../db.json'), 'utf8'))
   global.__store = {
     spots:    JSON.parse(JSON.stringify(db.spots)),
     votes:    JSON.parse(JSON.stringify(db.votes    || [])),
