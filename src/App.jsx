@@ -247,6 +247,10 @@ export default function App() {
               setSpots(prev => prev.map(s => s.id === updated.id ? updated : s))
               setSelectedSpot(updated)
             }}
+            onDelete={id => {
+              setSpots(prev => prev.filter(s => s.id !== id))
+              setSelectedSpot(null)
+            }}
             initialVoteType={pendingVoteType}
           />
         )}

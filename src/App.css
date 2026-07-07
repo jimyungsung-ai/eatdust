@@ -357,6 +357,31 @@ body { background: var(--bg); }
 }
 .sm-edit-btn:hover { background: #fef9c3; color: var(--amber); }
 
+.sm-delete-btn {
+  width: 32px; height: 32px;
+  background: #f1f5f9; border: none; border-radius: 50%;
+  font-size: 15px; color: #94a3b8;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.sm-delete-btn:hover { background: #fee2e2; color: #dc2626; }
+
+.sm-confirm-delete {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: #dc2626;
+}
+.sm-confirm-yes {
+  padding: 3px 10px; border-radius: 12px;
+  background: #dc2626; border: none; color: #fff;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.sm-confirm-yes:hover { background: #b91c1c; }
+.sm-confirm-no {
+  padding: 3px 10px; border-radius: 12px;
+  background: #f1f5f9; border: none; color: var(--text);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.sm-confirm-no:hover { background: #e2e8f0; }
+
 .sm-edit-name {
   font-size: 17px; font-weight: 800; color: var(--text);
   border: none; border-bottom: 2px solid var(--amber);

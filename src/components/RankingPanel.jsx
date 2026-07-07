@@ -34,7 +34,7 @@ export default function RankingPanel({ spots, votes = [], onSelect, onVoteSelect
         let score, trend
 
         if (audience === 'all') {
-          score = s.valueUp || 0
+          score = (s.valueUp || 0) - (s.valueDown || 0)
           const ru = recentAll.filter(v => v.type === 'up').length
           const rd = recentAll.filter(v => v.type === 'down').length
           trend = ru - rd
@@ -54,7 +54,7 @@ export default function RankingPanel({ spots, votes = [], onSelect, onVoteSelect
 
         return { ...s, score, trend }
       })
-      .filter(s => s.score > 0)
+      .filter(s => (s.valueUp || 0) > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
   }, [spots, votes, audience])

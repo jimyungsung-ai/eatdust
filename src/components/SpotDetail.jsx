@@ -35,7 +35,7 @@ function avatarColor(name) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
 }
 
-export default function SpotDetail({ spot, onClose, onVote, onUpdate, initialVoteType = null }) {
+export default function SpotDetail({ spot, onClose, onVote, onUpdate, onDelete, initialVoteType = null }) {
   const { lang, t } = useLang()
   const cat     = CATEGORIES[spot.category] || { icon: '🍽', label: spot.category, label_en: spot.category }
   const catLabel = lang === 'en' ? (cat.label_en ?? cat.label) : cat.label
@@ -95,6 +95,12 @@ export default function SpotDetail({ spot, onClose, onVote, onUpdate, initialVot
   }
 
   const setField = (k, v) => setDraft(prev => ({ ...prev, [k]: v }))
+
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const handleDelete = async () => {
+    await fetch(`/api/spots/${spot.id}`, { method: 'DELETE' })
+    onDelete?.(spot.id)
+  }
 
   useEffect(() => {
     fetch(`/api/comments?spotId=${spot.id}`)
@@ -172,8 +178,18 @@ export default function SpotDetail({ spot, onClose, onVote, onUpdate, initialVot
             </p>
           </div>
           <div className="sm-head-actions">
-            {!editMode && (
+            {!editMode && !confirmDelete && (
               <button className="sm-edit-btn" onClick={startEdit} title="Edit">✎</button>
+            )}
+            {!editMode && !confirmDelete && (
+              <button className="sm-delete-btn" onClick={() => setConfirmDelete(true)} title="Delete">🗑</button>
+            )}
+            {confirmDelete && (
+              <div className="sm-confirm-delete">
+                <span>{lang === 'en' ? 'Delete?' : 'Xoá?'}</span>
+                <button className="sm-confirm-yes" onClick={handleDelete}>{lang === 'en' ? 'Yes' : 'Có'}</button>
+                <button className="sm-confirm-no" onClick={() => setConfirmDelete(false)}>{lang === 'en' ? 'No' : 'Không'}</button>
+              </div>
             )}
             <button className="sm-close" onClick={onClose} aria-label="Close">✕</button>
           </div>
