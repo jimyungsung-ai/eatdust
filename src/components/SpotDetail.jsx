@@ -196,7 +196,19 @@ export default function SpotDetail({ spot, onClose, onVote, onUpdate, onDelete, 
         </div>
 
         {/* ── Photos ── */}
-        <PhotoGallery photos={spot.photos} />
+        <PhotoGallery
+          photos={spot.photos}
+          onPhotoAdded={async (url) => {
+            const updatedPhotos = [...(spot.photos || []), url]
+            const res = await fetch(`/api/spots/${spot.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ photos: updatedPhotos }),
+            })
+            const updated = await res.json()
+            onUpdate?.(updated)
+          }}
+        />
 
         {/* ── Info grid ── */}
         {editMode ? (
