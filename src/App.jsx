@@ -6,6 +6,7 @@ import FilterPanel from './components/FilterPanel'
 import RankingPanel from './components/RankingPanel'
 import FoodiesPanel from './components/FoodiesPanel'
 import RulesPanel from './components/RulesPanel'
+import FeedPanel from './components/FeedPanel'
 import { LangContext } from './LangContext'
 import { T } from './i18n'
 
@@ -46,6 +47,7 @@ export default function App() {
   const [showFoodies,  setShowFoodies]  = useState(() => window.innerWidth > 680)
   const [showRanking,  setShowRanking]  = useState(() => window.innerWidth > 680)
   const [showRules,    setShowRules]    = useState(() => !localStorage.getItem('eatdust_rules_seen'))
+
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [pinMode, setPinMode] = useState(false)
   const [lang, setLang] = useState('en')
@@ -297,6 +299,9 @@ export default function App() {
 
         {/* ── Rules panel ── */}
         {showRules && <RulesPanel onClose={() => setShowRules(false)} />}
+
+        {/* ── Live ticker (always visible at bottom) ── */}
+        <FeedPanel spots={spots} />
 
         {/* ── Mobile tag strip (below header, mobile only) ── */}
         <div className="mobile-tags">

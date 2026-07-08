@@ -436,6 +436,23 @@
       "discovererFlag": "🇹🇭",
       "discovererUsername": "ngọt_hủ_370",
       "id": "iK4CA47"
+    },
+    {
+      "name": "Testing new place",
+      "dish": "afwa",
+      "price": 10000,
+      "category": "com",
+      "district": "District 3",
+      "lat": 10.7866,
+      "lng": 106.694069,
+      "notes": "",
+      "googleMapsUrl": "",
+      "submittedAt": "2026-07-08T07:37:19.734Z",
+      "valueUp": 0,
+      "valueDown": 0,
+      "discovererFlag": "",
+      "discovererUsername": "thơm_chả_577",
+      "id": "XhralTt"
     }
   ],
   "comments": [
@@ -591,6 +608,15 @@
       "likes": 0,
       "createdAt": "2026-07-07T09:09:28.735Z",
       "id": "foJGTRH"
+    },
+    {
+      "spotId": "XhralTt",
+      "username": "Eat Dust",
+      "flag": "🇻🇳",
+      "text": "📍 Discovered by thơm_chả_577",
+      "likes": 0,
+      "createdAt": "2026-07-08T07:37:19.788Z",
+      "id": "nUWaJ4a"
     }
   ],
   "votes": [
