@@ -5,6 +5,7 @@ import SubmitForm from './components/SubmitForm'
 import FilterPanel from './components/FilterPanel'
 import RankingPanel from './components/RankingPanel'
 import FoodiesPanel from './components/FoodiesPanel'
+import RulesPanel from './components/RulesPanel'
 import { LangContext } from './LangContext'
 import { T } from './i18n'
 
@@ -42,8 +43,9 @@ export default function App() {
   const [showSubmit, setShowSubmit] = useState(false)
   const [submitLocation, setSubmitLocation] = useState(null)
   const [showFilters,  setShowFilters]  = useState(false)
-  const [showFoodies,  setShowFoodies]  = useState(true)
-  const [showRanking,  setShowRanking]  = useState(true)
+  const [showFoodies,  setShowFoodies]  = useState(() => window.innerWidth > 680)
+  const [showRanking,  setShowRanking]  = useState(() => window.innerWidth > 680)
+  const [showRules,    setShowRules]    = useState(() => !localStorage.getItem('eatdust_rules_seen'))
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
   const [pinMode, setPinMode] = useState(false)
   const [lang, setLang] = useState('en')
@@ -271,18 +273,46 @@ export default function App() {
 
         {/* ── FAB ── */}
         {!showSubmit && (
-          <button
-            className={`fab ${pinMode ? 'fab-cancel' : ''}`}
-            onClick={handleFAB}
-          >
-            {pinMode ? t.fab_cancel : t.fab_add}
-          </button>
+          <div className="fab-row">
+            {!pinMode && (
+              <button
+                className="fab-rules-btn"
+                onClick={() => setShowRules(true)}
+                title="Community rules"
+              >📖</button>
+            )}
+            <button
+              className={`fab ${pinMode ? 'fab-cancel' : ''}`}
+              onClick={handleFAB}
+            >
+              {pinMode ? t.fab_cancel : t.fab_add}
+            </button>
+          </div>
         )}
 
         {/* ── Pin mode hint ── */}
         {pinMode && (
           <div className="pin-hint">{t.pin_hint}</div>
         )}
+
+        {/* ── Rules panel ── */}
+        {showRules && <RulesPanel onClose={() => setShowRules(false)} />}
+
+        {/* ── Mobile tag strip (below header, mobile only) ── */}
+        <div className="mobile-tags">
+          <button
+            className={`mt-tag ${showRanking ? 'active' : ''}`}
+            onClick={() => setShowRanking(v => !v)}
+          >🏆 Ranking</button>
+          <button
+            className={`mt-tag ${showFoodies ? 'active' : ''}`}
+            onClick={() => setShowFoodies(v => !v)}
+          >🍴 Foodies</button>
+          <button
+            className={`mt-tag ${activeFilterCount > 0 ? 'active' : ''}`}
+            onClick={() => setShowFilters(v => !v)}
+          >⚙ Filter {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}</button>
+        </div>
       </div>
     </LangContext.Provider>
   )

@@ -169,9 +169,12 @@ body { background: var(--bg); }
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ── FAB ── */
-.fab {
+/* ── FAB row ── */
+.fab-row {
   position: fixed; bottom: 28px; right: 18px; z-index: 900;
+  display: flex; align-items: center; gap: 8px;
+}
+.fab {
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -183,6 +186,19 @@ body { background: var(--bg); }
   box-shadow: 0 4px 16px rgba(0,0,0,0.13);
   transition: transform 0.12s, opacity 0.15s;
 }
+.fab-rules-btn {
+  width: 44px; height: 44px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0,0,0,0.10); border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.12s, opacity 0.15s;
+}
+.fab-rules-btn:hover { opacity: 0.85; transform: translateY(-1px); }
 .fab:hover  { opacity: 0.85; transform: translateY(-1px); }
 .fab:active { transform: scale(0.97); }
 .fab-cancel { background: rgba(220,38,38,0.85); color: #fff; border-color: transparent; }
@@ -1183,3 +1199,186 @@ input[type="range"] { width: 100%; accent-color: var(--text); cursor: pointer; }
 .vm-submit:active   { transform: scale(0.98); }
 .vm-submit.up   { background: #16a34a; color: #fff; }
 .vm-submit.down { background: #ea580c; color: #fff; }
+
+/* ── Rules Panel ── */
+@keyframes rpSlideUp {
+  from { transform: translateY(40px); opacity: 0 }
+  to   { transform: translateY(0);    opacity: 1 }
+}
+
+.rp-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.rp-sheet {
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 520px;
+  padding: 28px 28px 32px;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.16);
+  animation: rpSlideUp 0.24s cubic-bezier(0.34,1.2,0.64,1);
+}
+
+.rp-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 22px;
+}
+.rp-icon { font-size: 22px; line-height: 1; }
+.rp-title {
+  font-size: 18px; font-weight: 900; color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.rp-list {
+  list-style: none; padding: 0; margin: 0 0 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  counter-reset: rules;
+}
+.rp-list li {
+  counter-increment: rules;
+  display: flex; align-items: flex-start; gap: 14px;
+  font-size: 15px; color: var(--text); line-height: 1.45;
+}
+.rp-list li::before {
+  content: counter(rules);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  background: #fef3c7; border-radius: 50%;
+  font-size: 12px; font-weight: 800; color: #92400e;
+}
+
+.rp-footer {
+  font-size: 13px; color: var(--muted);
+  margin-bottom: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  line-height: 1.5;
+}
+
+.rp-btn {
+  display: block; width: 100%;
+  padding: 15px;
+  background: var(--text); color: #fff;
+  border: none; border-radius: 14px;
+  font-size: 16px; font-weight: 800; font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.rp-btn:hover  { opacity: 0.88; }
+.rp-btn:active { transform: scale(0.98); }
+
+/* ══════════════════════════════════════
+   MOBILE TAG STRIP + RESPONSIVE
+   ══════════════════════════════════════ */
+
+/* Tag strip — hidden on desktop */
+.mobile-tags { display: none; }
+
+@media (max-width: 680px) {
+
+  /* ── Slimmer header ── */
+  .header {
+    top: 8px; left: 8px; right: 8px;
+    height: 46px; padding: 0 10px;
+  }
+  .header-title { font-size: 16px; }
+  .header-sub   { display: none; }
+
+  /* Ranking + Foodies buttons already in tag strip — hide from header */
+  .header-actions .btn-foodies { display: none; }
+
+  /* Hide filter from header too — it's in the tag strip */
+  .header-actions .btn-filter { display: none; }
+
+  /* Lang toggle stays, just tighter */
+  .lang-toggle button { font-size: 11px; padding: 6px 7px; }
+
+  /* ── Mobile tag strip ── */
+  /* header: top 8px + height 46px + 6px gap = 60px */
+  .mobile-tags {
+    display: flex;
+    position: fixed;
+    top: 62px; left: 0; right: 0;
+    z-index: 900;
+    padding: 0 12px;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-tags::-webkit-scrollbar { display: none; }
+
+  .mt-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.90);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.09);
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .mt-tag.active {
+    background: var(--text);
+    border-color: var(--text);
+    color: #fff;
+  }
+
+  /* ── Panels → full-width bottom sheets ── */
+  .ranking-panel,
+  .foodies-panel {
+    position: fixed !important;
+    left: 0 !important; right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.16);
+    max-height: 75dvh;
+    overflow: hidden;
+  }
+
+  /* Drag handle pill */
+  .rk-header,
+  .fd-header {
+    position: relative;
+    cursor: default;
+    padding-top: 22px;
+  }
+  .rk-header::before,
+  .fd-header::before {
+    content: '';
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 36px; height: 4px;
+    background: #d1d5db; border-radius: 2px;
+  }
+
+  /* Panel list heights on mobile */
+  .rk-list { height: 55dvh; }
+  .fd-list  { height: 55dvh; }
+
+  /* ── Spot + Submit → bottom sheets ── */
+  .spot-overlay { padding: 0; align-items: flex-end; }
+  .spot-modal   { max-width: 100%; max-height: 94dvh; border-radius: 20px 20px 0 0; }
+  .sf-modal     { border-radius: 20px 20px 0 0; }
+
+  /* ── Filter panel full-width ── */
+  .fp-overlay { padding-top: 56px; }
+  .filter-panel {
+    width: 100%; max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: calc(100dvh - 56px);
+  }
+}

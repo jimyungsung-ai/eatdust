@@ -179,10 +179,18 @@ export default function SpotDetail({ spot, onClose, onVote, onUpdate, onDelete, 
           </div>
           <div className="sm-head-actions">
             {!editMode && !confirmDelete && (
-              <button className="sm-edit-btn" onClick={startEdit} title="Edit">✎</button>
-            )}
-            {!editMode && !confirmDelete && (
-              <button className="sm-delete-btn" onClick={() => setConfirmDelete(true)} title="Delete">🗑</button>
+              <>
+                <button className="sm-edit-btn" onClick={startEdit} title="Edit">✎</button>
+                <button className="sm-delete-btn" onClick={() => setConfirmDelete(true)} title="Delete">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="1,3 13,3"/>
+                    <path d="M4,3V2a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V3"/>
+                    <rect x="2" y="3" width="10" height="9" rx="1"/>
+                    <line x1="5" y1="6" x2="5" y2="10"/>
+                    <line x1="9" y1="6" x2="9" y2="10"/>
+                  </svg>
+                </button>
+              </>
             )}
             {confirmDelete && (
               <div className="sm-confirm-delete">
