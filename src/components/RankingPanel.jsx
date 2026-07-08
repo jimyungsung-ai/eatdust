@@ -159,8 +159,8 @@ export default function RankingPanel({ spots, votes = [], onSelect, onVoteSelect
         <>
           <div className="rk-tabs">
             <button className={`rk-tab ${audience === 'all'     ? 'on' : ''}`} onClick={() => setAudience('all')}>🤝 All</button>
-            <button className={`rk-tab ${audience === 'local'   ? 'on' : ''}`} onClick={() => setAudience('local')}>🇻🇳 Locals</button>
-            <button className={`rk-tab ${audience === 'foreign' ? 'on' : ''}`} onClick={() => setAudience('foreign')}>🌐 Foreigners</button>
+            <button className={`rk-tab ${audience === 'local'   ? 'on' : ''}`} onClick={() => setAudience('local')}>🇻🇳 By locals</button>
+            <button className={`rk-tab ${audience === 'foreign' ? 'on' : ''}`} onClick={() => setAudience('foreign')}>🌐 By foreigners</button>
           </div>
 
           <div className="rk-list">
@@ -205,8 +205,8 @@ export default function RankingPanel({ spots, votes = [], onSelect, onVoteSelect
         <>
           <div className="rk-tabs">
             <button className={`rk-tab ${audience === 'all'     ? 'on' : ''}`} onClick={() => setAudience('all')}>🤝 All</button>
-            <button className={`rk-tab ${audience === 'local'   ? 'on' : ''}`} onClick={() => setAudience('local')}>🇻🇳 Locals</button>
-            <button className={`rk-tab ${audience === 'foreign' ? 'on' : ''}`} onClick={() => setAudience('foreign')}>🌐 Foreigners</button>
+            <button className={`rk-tab ${audience === 'local'   ? 'on' : ''}`} onClick={() => setAudience('local')}>🇻🇳 By locals</button>
+            <button className={`rk-tab ${audience === 'foreign' ? 'on' : ''}`} onClick={() => setAudience('foreign')}>🌐 By foreigners</button>
           </div>
           <div className="rk-list">
             {newest.length === 0 ? (

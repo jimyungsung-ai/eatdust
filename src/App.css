@@ -747,6 +747,7 @@ input[type="range"] { width: 100%; accent-color: var(--text); cursor: pointer; }
 }
 .foodies-panel.dragging .fd-header { cursor: grabbing; }
 
+
 .fd-title {
   font-size: 15px; font-weight: 800; color: var(--text);
 }
