@@ -6,9 +6,11 @@ import FilterPanel from './components/FilterPanel'
 import RankingPanel from './components/RankingPanel'
 import FoodiesPanel from './components/FoodiesPanel'
 import RulesPanel from './components/RulesPanel'
+import AuthModal from './components/AuthModal'
 import FeedPanel from './components/FeedPanel'
 import { LangContext } from './LangContext'
 import { T } from './i18n'
+import { AuthProvider, useAuth } from './context/AuthContext'
 
 export const CATEGORIES = {
   com:      { label: 'Cơm',          label_en: 'Rice',           icon: '🍚' },
@@ -35,22 +37,26 @@ export function isNew(spot) {
   return days < 7
 }
 
-export default function App() {
-  const [spots, setSpots] = useState([])
-  const [votes, setVotes] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selectedSpot, setSelectedSpot] = useState(null)
-  const [pendingVoteType, setPendingVoteType] = useState(null)
-  const [showSubmit, setShowSubmit] = useState(false)
-  const [submitLocation, setSubmitLocation] = useState(null)
-  const [showFilters,  setShowFilters]  = useState(false)
-  const [showFoodies,  setShowFoodies]  = useState(() => window.innerWidth > 680)
-  const [showRanking,  setShowRanking]  = useState(() => window.innerWidth > 680)
-  const [showRules,    setShowRules]    = useState(() => !localStorage.getItem('eatdust_rules_seen'))
+// ── Inner app (has access to useAuth) ──────────────────────────────────────
+function AppInner() {
+  const { currentUser, logout, getToken } = useAuth()
 
-  const [filters, setFilters] = useState(DEFAULT_FILTERS)
-  const [pinMode, setPinMode] = useState(false)
-  const [lang, setLang] = useState('en')
+  const [spots,           setSpots]           = useState([])
+  const [votes,           setVotes]           = useState([])
+  const [loading,         setLoading]         = useState(true)
+  const [selectedSpot,    setSelectedSpot]    = useState(null)
+  const [pendingVoteType, setPendingVoteType] = useState(null)
+  const [showSubmit,      setShowSubmit]      = useState(false)
+  const [submitLocation,  setSubmitLocation]  = useState(null)
+  const [showFilters,     setShowFilters]     = useState(false)
+  const [showFoodies,     setShowFoodies]     = useState(() => window.innerWidth > 680)
+  const [showRanking,     setShowRanking]     = useState(() => window.innerWidth > 680)
+  const [showRules,       setShowRules]       = useState(() => !localStorage.getItem('eatdust_rules_seen'))
+  const [showAuth,        setShowAuth]        = useState(false)
+  const [filters,         setFilters]         = useState(DEFAULT_FILTERS)
+  const [pinMode,         setPinMode]         = useState(false)
+  const [lang,            setLang]            = useState('en')
+  const [alreadyVoted,    setAlreadyVoted]    = useState(false)
 
   const t = T[lang]
 
@@ -78,7 +84,6 @@ export default function App() {
     return true
   })
 
-  // Top-3 by valueUp — used to badge map markers
   const rankMap = {}
   ;[...filteredSpots]
     .filter(s => (s.valueUp || 0) > 0)
@@ -91,54 +96,58 @@ export default function App() {
     filters.categories.length +
     (filters.district ? 1 : 0)
 
-  const handleVote = async (id, type, flag = '') => {
+  const handleVote = async (id, type, reasons = []) => {
+    if (!currentUser) { setShowAuth(true); return }
     const spot = spots.find(s => s.id === id)
     if (!spot) return
-    const field = type === 'up' ? 'valueUp' : 'valueDown'
+    const field   = type === 'up' ? 'valueUp' : 'valueDown'
     const updated = { ...spot, [field]: (spot[field] || 0) + 1 }
-    // Record the vote with nationality
-    const newVote = { spotId: id, type, flag, createdAt: new Date().toISOString() }
-    await Promise.all([
-      fetch(`/api/spots/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: updated[field] }),
+    const token   = getToken()
+
+    const voteRes = await fetch('/api/votes', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        spotId:    id,
+        type,
+        flag:      currentUser.flag || '',
+        reasons,
+        createdAt: new Date().toISOString(),
       }),
-      fetch('/api/votes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newVote),
-      }),
-    ])
+    })
+
+    if (voteRes.status === 409) {
+      setAlreadyVoted(true)
+      setTimeout(() => setAlreadyVoted(false), 2500)
+      return
+    }
+    if (!voteRes.ok) return
+
+    await fetch(`/api/spots/${id}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ [field]: updated[field] }),
+    })
+
     setSpots(prev => prev.map(s => s.id === id ? updated : s))
-    setVotes(prev => [...prev, { ...newVote, id: Date.now().toString() }])
+    setVotes(prev => [...prev, { spotId: id, type, flag: currentUser.flag || '', id: Date.now().toString() }])
     setSelectedSpot(updated)
   }
 
   const handleSubmit = async (data) => {
-    const { username, flag, ...spotData } = data
-    const payload = { ...spotData, submittedAt: new Date().toISOString(), valueUp: 0, valueDown: 0, discovererFlag: flag || '', discovererUsername: username || '' }
+    const token = getToken()
+    const payload = {
+      ...data,
+      submittedAt: new Date().toISOString(),
+      valueUp:     0,
+      valueDown:   0,
+    }
     const res = await fetch('/api/spots', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload),
     })
     const saved = await res.json()
-
-    // Auto-post "Discovered by" comment — posted as Eat Dust 🇻🇳
-    fetch('/api/comments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        spotId: saved.id,
-        username: 'Eat Dust',
-        flag: '🇻🇳',
-        text: T[lang === 'en' ? 'en' : 'vn'].sf_discovered(username, flag),
-        likes: 0,
-        createdAt: new Date().toISOString(),
-      }),
-    }).catch(() => {})
-
     setSpots(prev => [...prev, saved])
     setShowSubmit(false)
     setSubmitLocation(null)
@@ -157,6 +166,7 @@ export default function App() {
     if (pinMode) {
       setPinMode(false)
     } else {
+      if (!currentUser) { setShowAuth(true); return }
       setSelectedSpot(null)
       setShowSubmit(false)
       setPinMode(true)
@@ -172,62 +182,49 @@ export default function App() {
   return (
     <LangContext.Provider value={lang}>
       <div className="app" translate="no">
+
         {/* ── Header ── */}
         <header className="header">
           <div className="header-brand">
             <span className="header-title">🍜 Ăn Bụi <span className="header-sub">· Sài Gòn</span></span>
           </div>
           <div className="header-actions">
-            {/* Ranking panel toggle */}
-            <button
-              className={`btn-foodies ${showRanking ? 'active' : ''}`}
-              onClick={() => setShowRanking(v => !v)}
-            >
+            <button className={`btn-foodies ${showRanking ? 'active' : ''}`} onClick={() => setShowRanking(v => !v)}>
               🏆 Ranking
             </button>
-            {/* Foodies leaderboard */}
-            <button
-              className={`btn-foodies ${showFoodies ? 'active' : ''}`}
-              onClick={() => setShowFoodies(v => !v)}
-            >
+            <button className={`btn-foodies ${showFoodies ? 'active' : ''}`} onClick={() => setShowFoodies(v => !v)}>
               🍴 Foodies
             </button>
-            {/* Language toggle */}
             <div className="lang-toggle" translate="no">
-              <button
-                className={lang === 'vn' ? 'on' : ''}
-                onClick={() => setLang('vn')}
-              >VN</button>
+              <button className={lang === 'vn' ? 'on' : ''} onClick={() => setLang('vn')}>VN</button>
               <span className="lang-sep">|</span>
-              <button
-                className={lang === 'en' ? 'on' : ''}
-                onClick={() => setLang('en')}
-              >ENG</button>
+              <button className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>ENG</button>
             </div>
-            {/* Filter */}
-            <button
-              className={`btn-filter ${activeFilterCount > 0 ? 'active' : ''}`}
-              onClick={() => setShowFilters(v => !v)}
-            >
+            <button className={`btn-filter ${activeFilterCount > 0 ? 'active' : ''}`} onClick={() => setShowFilters(v => !v)}>
               {t.filter_btn} {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}
             </button>
+            {/* Auth */}
+            {currentUser ? (
+              <div className="header-user">
+                <span className="header-user-chip">
+                  {currentUser.flag && <span>{currentUser.flag}</span>}
+                  {currentUser.username}
+                </span>
+                <button className="header-logout" onClick={logout} title="Sign out">↪</button>
+              </div>
+            ) : (
+              <button className="header-signin" onClick={() => setShowAuth(true)}>Sign in</button>
+            )}
           </div>
         </header>
 
         {/* ── Filter panel ── */}
         {showFilters && (
-          <FilterPanel
-            filters={filters}
-            onChange={setFilters}
-            onClose={() => setShowFilters(false)}
-            onReset={() => setFilters(DEFAULT_FILTERS)}
-          />
+          <FilterPanel filters={filters} onChange={setFilters} onClose={() => setShowFilters(false)} onReset={() => setFilters(DEFAULT_FILTERS)} />
         )}
 
         {/* ── Foodies panel ── */}
-        {showFoodies && (
-          <FoodiesPanel spots={spots} onClose={() => setShowFoodies(false)} />
-        )}
+        {showFoodies && <FoodiesPanel spots={spots} onClose={() => setShowFoodies(false)} />}
 
         {/* ── Map ── */}
         <MapView
@@ -247,6 +244,7 @@ export default function App() {
             spot={selectedSpot}
             onClose={() => { setSelectedSpot(null); setPendingVoteType(null) }}
             onVote={handleVote}
+            onRequestAuth={() => setShowAuth(true)}
             onUpdate={updated => {
               setSpots(prev => prev.map(s => s.id === updated.id ? updated : s))
               setSelectedSpot(updated)
@@ -261,64 +259,72 @@ export default function App() {
 
         {/* ── Submit form ── */}
         {showSubmit && (
-          <SubmitForm
-            initialLocation={submitLocation}
-            onSubmit={handleSubmit}
-            onClose={closeSubmit}
-          />
+          <SubmitForm initialLocation={submitLocation} onSubmit={handleSubmit} onClose={closeSubmit} />
         )}
 
         {/* ── Ranking panel ── */}
         {!showSubmit && showRanking && (
-          <RankingPanel spots={filteredSpots} votes={votes} onSelect={setSelectedSpot} onVoteSelect={(spot, type) => { setSelectedSpot(spot); setPendingVoteType(type) }} />
+          <RankingPanel
+            spots={filteredSpots}
+            votes={votes}
+            onSelect={setSelectedSpot}
+            onVoteSelect={(spot, type) => {
+              if (!currentUser) { setShowAuth(true); return }
+              setSelectedSpot(spot)
+              setPendingVoteType(type)
+            }}
+          />
         )}
 
         {/* ── FAB ── */}
         {!showSubmit && (
           <div className="fab-row">
             {!pinMode && (
-              <button
-                className="fab-rules-btn"
-                onClick={() => setShowRules(true)}
-                title="Community rules"
-              >📖</button>
+              <button className="fab-rules-btn" onClick={() => setShowRules(true)} title="Community rules">📖</button>
             )}
-            <button
-              className={`fab ${pinMode ? 'fab-cancel' : ''}`}
-              onClick={handleFAB}
-            >
+            <button className={`fab ${pinMode ? 'fab-cancel' : ''}`} onClick={handleFAB}>
               {pinMode ? t.fab_cancel : t.fab_add}
             </button>
           </div>
         )}
 
         {/* ── Pin mode hint ── */}
-        {pinMode && (
-          <div className="pin-hint">{t.pin_hint}</div>
-        )}
+        {pinMode && <div className="pin-hint">{t.pin_hint}</div>}
+
+        {/* ── "Already voted" toast ── */}
+        {alreadyVoted && <div className="vote-toast">You already voted on this spot ✓</div>}
 
         {/* ── Rules panel ── */}
         {showRules && <RulesPanel onClose={() => setShowRules(false)} />}
 
-        {/* ── Live ticker (always visible at bottom) ── */}
+        {/* ── Auth modal ── */}
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+        {/* ── Live ticker ── */}
         <FeedPanel spots={spots} />
 
-        {/* ── Mobile tag strip (below header, mobile only) ── */}
+        {/* ── Mobile tag strip ── */}
         <div className="mobile-tags">
-          <button
-            className={`mt-tag ${showRanking ? 'active' : ''}`}
-            onClick={() => setShowRanking(v => !v)}
-          >🏆 Ranking</button>
-          <button
-            className={`mt-tag ${showFoodies ? 'active' : ''}`}
-            onClick={() => setShowFoodies(v => !v)}
-          >🍴 Foodies</button>
-          <button
-            className={`mt-tag ${activeFilterCount > 0 ? 'active' : ''}`}
-            onClick={() => setShowFilters(v => !v)}
-          >⚙ Filter {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}</button>
+          <button className={`mt-tag ${showRanking ? 'active' : ''}`} onClick={() => setShowRanking(v => !v)}>🏆 Ranking</button>
+          <button className={`mt-tag ${showFoodies ? 'active' : ''}`} onClick={() => setShowFoodies(v => !v)}>🍴 Foodies</button>
+          <button className={`mt-tag ${activeFilterCount > 0 ? 'active' : ''}`} onClick={() => setShowFilters(v => !v)}>
+            ⚙ Filter {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}
+          </button>
+          <button className="mt-tag" onClick={() => currentUser ? null : setShowAuth(true)}>
+            {currentUser ? `${currentUser.flag || '👤'} ${currentUser.username}` : 'Sign in'}
+          </button>
         </div>
+
       </div>
     </LangContext.Provider>
+  )
+}
+
+// ── Root export wraps with AuthProvider ────────────────────────────────────
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   )
 }
