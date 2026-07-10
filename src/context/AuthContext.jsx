@@ -7,7 +7,6 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [authReady,   setAuthReady]   = useState(false)
 
-  // Restore session on mount
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (!token) { setAuthReady(true); return }
@@ -18,26 +17,14 @@ export function AuthProvider({ children }) {
       .finally(() => setAuthReady(true))
   }, [])
 
-  const login = async (email, password) => {
-    const res = await fetch('/api/auth/login', {
+  // One call for both new and returning users
+  const identify = async (email, username, flag) => {
+    const res = await fetch('/api/auth/identify', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, password }),
+      body:    JSON.stringify({ email, username, flag }),
     })
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Login failed') }
-    const { token, user } = await res.json()
-    localStorage.setItem(TOKEN_KEY, token)
-    setCurrentUser(user)
-    return user
-  }
-
-  const register = async (email, username, flag, password) => {
-    const res = await fetch('/api/auth/register', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, username, flag, password }),
-    })
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Registration failed') }
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed') }
     const { token, user } = await res.json()
     localStorage.setItem(TOKEN_KEY, token)
     setCurrentUser(user)
@@ -52,7 +39,7 @@ export function AuthProvider({ children }) {
   const getToken = () => localStorage.getItem(TOKEN_KEY)
 
   return (
-    <AuthContext.Provider value={{ currentUser, authReady, login, register, logout, getToken }}>
+    <AuthContext.Provider value={{ currentUser, authReady, identify, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   )
