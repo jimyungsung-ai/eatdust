@@ -271,8 +271,8 @@ export default function SpotDetail({ spot, onClose, onVote, onUpdate, onDelete, 
             <form className="sm-comment-form" onSubmit={handleComment}>
               <div className="sm-comment-top">
                 <span className="sm-comment-who">
-                  {currentUser.flag && <span>{currentUser.flag}</span>}
                   <strong>{currentUser.username}</strong>
+                  {currentUser.flag && <span>{currentUser.flag}</span>}
                 </span>
                 <button type="submit" className="sm-submit" disabled={!text.trim() || submitting}>
                   {t.post_btn}

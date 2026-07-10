@@ -2,16 +2,10 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import FlagPicker from './FlagPicker'
 
-const ADJ  = ['ngon', 'bụi', 'cay', 'béo', 'thơm', 'giòn', 'đậm', 'ngọt']
-const FOOD = ['phở', 'bún', 'cơm', 'bánh', 'chả', 'nem', 'lẩu', 'xôi']
-function randomName() {
-  return `${ADJ[Math.random() * ADJ.length | 0]}_${FOOD[Math.random() * FOOD.length | 0]}_${Math.floor(Math.random() * 900 + 100)}`
-}
-
 export default function AuthModal({ onClose }) {
   const { identify } = useAuth()
   const [email,    setEmail]    = useState('')
-  const [username, setUsername] = useState(randomName)
+  const [username, setUsername] = useState('')
   const [flag,     setFlag]     = useState('')
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
@@ -19,6 +13,7 @@ export default function AuthModal({ onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    if (!flag) { setError('Please select your nationality'); return }
     setLoading(true)
     try {
       await identify(email, username, flag)
@@ -55,18 +50,19 @@ export default function AuthModal({ onClose }) {
           </div>
 
           <div className="auth-field">
-            <label className="auth-label">Username <span className="auth-optional">— change it if you like</span></label>
+            <label className="auth-label">Username</label>
             <input
               className="auth-input"
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
+              placeholder="How should we call you?"
               maxLength={30}
             />
           </div>
 
           <div className="auth-field">
-            <label className="auth-label">Nationality <span className="auth-optional">(optional)</span></label>
+            <label className="auth-label">Nationality</label>
             <FlagPicker value={flag} onChange={setFlag} />
           </div>
 

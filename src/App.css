@@ -1537,21 +1537,24 @@ input[type="range"] { width: 100%; accent-color: var(--text); cursor: pointer; }
 .auth-submit:hover:not(:disabled) { opacity: 0.88; }
 .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 /* ── Header user chip ── */
-.header-user { display: flex; align-items: center; gap: 4px; }
 .header-user-chip {
   display: flex; align-items: center; gap: 5px;
   padding: 5px 10px;
   background: rgba(0,0,0,0.06); border-radius: 20px;
+  border: 1px solid transparent;
   font-size: 13px; font-weight: 600; color: var(--text);
-  max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: pointer; transition: all 0.15s;
+  font-family: inherit;
 }
-.header-logout {
-  background: none; border: none;
-  font-size: 16px; color: var(--muted);
-  cursor: pointer; padding: 4px 6px; border-radius: 8px;
-  transition: background 0.15s;
+.header-user-chip:hover {
+  background: rgba(220,38,38,0.08);
+  border-color: rgba(220,38,38,0.2);
+  color: var(--red);
 }
-.header-logout:hover { background: rgba(0,0,0,0.08); }
+.header-user-out {
+  font-size: 12px; opacity: 0.45; margin-left: 2px;
+}
 .header-signin {
   padding: 6px 14px;
   background: var(--text); color: #fff;

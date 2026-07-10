@@ -205,13 +205,11 @@ function AppInner() {
             </button>
             {/* Auth */}
             {currentUser ? (
-              <div className="header-user">
-                <span className="header-user-chip">
-                  {currentUser.flag && <span>{currentUser.flag}</span>}
-                  {currentUser.username}
-                </span>
-                <button className="header-logout" onClick={logout} title="Sign out">↪</button>
-              </div>
+              <button className="header-user-chip" onClick={logout} title="Sign out">
+                {currentUser.flag && <span>{currentUser.flag}</span>}
+                {currentUser.username}
+                <span className="header-user-out">↪</span>
+              </button>
             ) : (
               <button className="header-signin" onClick={() => setShowAuth(true)}>Sign in</button>
             )}

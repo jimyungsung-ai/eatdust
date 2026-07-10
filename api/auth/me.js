@@ -1,5 +1,4 @@
 'use strict'
-const users = require('../_users')
 const { requireAuth } = require('../_auth')
 
 const CORS = {
@@ -16,9 +15,10 @@ module.exports = async (req, res) => {
   const payload = requireAuth(req)
   if (!payload) return res.status(401).json({ error: 'Unauthorized' })
 
-  const user = users.list.find(u => u.id === payload.userId)
-  if (!user) return res.status(404).json({ error: 'User not found' })
-
-  const { password: _, ...safe } = user
-  return res.status(200).json(safe)
+  // Return directly from JWT — works across server restarts / cold starts
+  return res.status(200).json({
+    id:       payload.userId,
+    username: payload.username,
+    flag:     payload.flag || '',
+  })
 }
