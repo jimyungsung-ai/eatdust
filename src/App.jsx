@@ -57,6 +57,7 @@ function AppInner() {
   const [pinMode,         setPinMode]         = useState(false)
   const [lang,            setLang]            = useState('en')
   const [alreadyVoted,    setAlreadyVoted]    = useState(false)
+  const [mobileLogout,    setMobileLogout]    = useState(false)
 
   const t = T[lang]
 
@@ -205,11 +206,13 @@ function AppInner() {
             </button>
             {/* Auth */}
             {currentUser ? (
-              <button className="header-user-chip" onClick={logout} title="Sign out">
-                {currentUser.flag && <span>{currentUser.flag}</span>}
-                {currentUser.username}
-                <span className="header-user-out">↪</span>
-              </button>
+              <div className="header-user">
+                <span className="header-user-chip">
+                  {currentUser.flag && <span>{currentUser.flag}</span>}
+                  {currentUser.username}
+                </span>
+                <button className="header-logout" onClick={logout}>Log out</button>
+              </div>
             ) : (
               <button className="header-signin" onClick={() => setShowAuth(true)}>Sign in</button>
             )}
@@ -308,9 +311,17 @@ function AppInner() {
           <button className={`mt-tag ${activeFilterCount > 0 ? 'active' : ''}`} onClick={() => setShowFilters(v => !v)}>
             ⚙ Filter {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}
           </button>
-          <button className="mt-tag" onClick={() => currentUser ? null : setShowAuth(true)}>
-            {currentUser ? `${currentUser.flag || '👤'} ${currentUser.username}` : 'Sign in'}
-          </button>
+          {currentUser ? (
+            mobileLogout ? (
+              <button className="mt-tag mt-logout" onClick={() => { logout(); setMobileLogout(false) }}>Log out ↪</button>
+            ) : (
+              <button className="mt-tag" onClick={() => setMobileLogout(true)}>
+                {`${currentUser.flag || '👤'} ${currentUser.username}`}
+              </button>
+            )
+          ) : (
+            <button className="mt-tag" onClick={() => setShowAuth(true)}>Sign in</button>
+          )}
         </div>
 
       </div>
