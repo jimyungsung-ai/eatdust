@@ -1,6 +1,19 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import FlagPicker from './FlagPicker'
+
+const COUNTRIES = [
+  ['🇻🇳', 'Vietnam'],['🇹🇭', 'Thailand'],['🇸🇬', 'Singapore'],['🇲🇾', 'Malaysia'],
+  ['🇮🇩', 'Indonesia'],['🇵🇭', 'Philippines'],['🇰🇭', 'Cambodia'],['🇲🇲', 'Myanmar'],
+  ['🇱🇦', 'Laos'],['🇹🇼', 'Taiwan'],['🇭🇰', 'Hong Kong'],['🇰🇷', 'South Korea'],
+  ['🇯🇵', 'Japan'],['🇨🇳', 'China'],['🇮🇳', 'India'],['🇦🇺', 'Australia'],
+  ['🇳🇿', 'New Zealand'],['🇺🇸', 'United States'],['🇨🇦', 'Canada'],['🇧🇷', 'Brazil'],
+  ['🇲🇽', 'Mexico'],['🇦🇷', 'Argentina'],['🇬🇧', 'United Kingdom'],['🇫🇷', 'France'],
+  ['🇩🇪', 'Germany'],['🇮🇹', 'Italy'],['🇪🇸', 'Spain'],['🇵🇹', 'Portugal'],
+  ['🇳🇱', 'Netherlands'],['🇧🇪', 'Belgium'],['🇨🇭', 'Switzerland'],['🇸🇪', 'Sweden'],
+  ['🇳🇴', 'Norway'],['🇩🇰', 'Denmark'],['🇵🇱', 'Poland'],['🇺🇦', 'Ukraine'],
+  ['🇷🇺', 'Russia'],['🇦🇪', 'UAE'],['🇸🇦', 'Saudi Arabia'],['🇹🇷', 'Turkey'],
+  ['🇪🇬', 'Egypt'],['🇿🇦', 'South Africa'],['🇳🇬', 'Nigeria'],
+]
 
 export default function AuthModal({ onClose }) {
   const { identify } = useAuth()
@@ -96,7 +109,16 @@ export default function AuthModal({ onClose }) {
               </div>
               <div className="auth-field">
                 <label className="auth-label">Nationality</label>
-                <FlagPicker value={flag} onChange={setFlag} />
+                <select
+                  className="auth-input auth-select"
+                  value={flag}
+                  onChange={e => setFlag(e.target.value)}
+                >
+                  <option value="">Select your country…</option>
+                  {COUNTRIES.map(([f, name]) => (
+                    <option key={name} value={f}>{f} {name}</option>
+                  ))}
+                </select>
               </div>
             </>
           )}

@@ -1520,6 +1520,7 @@ input[type="range"] { width: 100%; accent-color: var(--text); cursor: pointer; }
   font-family: inherit;
 }
 .auth-input:focus { outline: none; border-color: var(--amber); }
+.auth-select { cursor: pointer; box-sizing: border-box; }
 .auth-error {
   font-size: 13px; color: var(--red);
   background: rgba(220,38,38,0.07);
