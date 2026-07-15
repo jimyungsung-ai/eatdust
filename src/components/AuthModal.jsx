@@ -26,9 +26,14 @@ export default function AuthModal({ onClose }) {
   // null = not checked yet, true = returning user, false = new user
   const [isReturning, setIsReturning] = useState(null)
 
-  const checkEmail = async () => {
+  const checkEmail = async (e) => {
+    e.preventDefault()
     const trimmed = email.trim()
-    if (!trimmed || !trimmed.includes('@')) return
+    if (!trimmed || !trimmed.includes('@')) {
+      setError('Please enter a valid email')
+      return
+    }
+    setError('')
     setChecking(true)
     try {
       const res  = await fetch('/api/auth/check', {
@@ -37,7 +42,7 @@ export default function AuthModal({ onClose }) {
         body:    JSON.stringify({ email: trimmed }),
       })
       const data = await res.json()
-      setIsReturning(data.exists)
+      setIsReturning(!!data.exists)
     } catch {
       setIsReturning(false) // treat as new on error
     } finally {
@@ -78,7 +83,7 @@ export default function AuthModal({ onClose }) {
            'Enter your email to get started'}
         </p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={isReturning === null ? checkEmail : handleSubmit}>
           <div className="auth-field">
             <label className="auth-label">Email</label>
             <input
@@ -86,11 +91,9 @@ export default function AuthModal({ onClose }) {
               type="email"
               value={email}
               onChange={e => { setEmail(e.target.value); setIsReturning(null) }}
-              onBlur={checkEmail}
               placeholder="you@example.com"
               required autoFocus
             />
-            {checking && <span className="auth-checking">Checking…</span>}
           </div>
 
           {/* Only show for new users */}
@@ -105,6 +108,7 @@ export default function AuthModal({ onClose }) {
                   onChange={e => setUsername(e.target.value)}
                   placeholder="How should we call you?"
                   maxLength={30}
+                  autoFocus
                 />
               </div>
               <div className="auth-field">
@@ -125,19 +129,16 @@ export default function AuthModal({ onClose }) {
 
           {error && <p className="auth-error">{error}</p>}
 
-          {/* Show button once email is validated */}
-          {isReturning !== null && (
-            <button className="auth-submit" type="submit" disabled={loading || checking}>
-              {loading ? '…' : "Let's eat 🍜"}
-            </button>
-          )}
+          <button className="auth-submit" type="submit" disabled={loading || checking}>
+            {checking ? 'Checking…' :
+             loading   ? '…' :
+             isReturning === null ? 'Continue →' :
+             "Let's eat 🍜"}
+          </button>
         </form>
 
-        {isReturning === null && (
-          <p className="auth-hint">Tab out of the email field to continue</p>
-        )}
         {isReturning === true && (
-          <p className="auth-hint">We found your account — just hit the button.</p>
+          <p className="auth-hint">We found your account — welcome back 👋</p>
         )}
       </div>
     </div>
