@@ -18,11 +18,11 @@ export function AuthProvider({ children }) {
   }, [])
 
   // One call for both new and returning users
-  const identify = async (email, username, flag) => {
+  const identify = async (email, password, username, flag) => {
     const res = await fetch('/api/auth/identify', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, username, flag }),
+      body:    JSON.stringify({ email, password, username, flag }),
     })
     if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed') }
     const { token, user } = await res.json()

@@ -1,6 +1,6 @@
 'use strict'
-const parseBody = require('../_parseBody')
-const users     = require('../_users')
+const parseBody       = require('../_parseBody')
+const { loadUsers }   = require('../_users')
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -16,6 +16,7 @@ module.exports = async (req, res) => {
   const { email } = await parseBody(req)
   if (!email) return res.status(400).json({ error: 'email required' })
 
+  const users  = await loadUsers()
   const exists = !!users.list.find(u => u.email === email.toLowerCase().trim())
   return res.status(200).json({ exists })
 }

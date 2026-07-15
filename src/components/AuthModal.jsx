@@ -20,6 +20,8 @@ export default function AuthModal({ onClose }) {
   const [email,      setEmail]      = useState('')
   const [username,   setUsername]   = useState('')
   const [flag,       setFlag]       = useState('')
+  const [password,   setPassword]   = useState('')
+  const [confirm,    setConfirm]    = useState('')
   const [error,      setError]      = useState('')
   const [loading,    setLoading]    = useState(false)
   const [checking,   setChecking]   = useState(false)
@@ -53,13 +55,17 @@ export default function AuthModal({ onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    if (isReturning === false && !flag) {
-      setError('Please select your nationality')
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
       return
+    }
+    if (isReturning === false) {
+      if (!flag) { setError('Please select your nationality'); return }
+      if (password !== confirm) { setError('Passwords don’t match'); return }
     }
     setLoading(true)
     try {
-      await identify(email, username, flag)
+      await identify(email, password, username, flag)
       onClose()
     } catch (err) {
       setError(err.message)
@@ -96,7 +102,7 @@ export default function AuthModal({ onClose }) {
             />
           </div>
 
-          {/* Only show for new users */}
+          {/* New user — username + nationality + password + confirm */}
           {isReturning === false && (
             <>
               <div className="auth-field">
@@ -124,7 +130,45 @@ export default function AuthModal({ onClose }) {
                   ))}
                 </select>
               </div>
+              <div className="auth-field">
+                <label className="auth-label">Password</label>
+                <input
+                  className="auth-input"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="At least 6 characters"
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="auth-field">
+                <label className="auth-label">Confirm password</label>
+                <input
+                  className="auth-input"
+                  type="password"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  placeholder="Re-enter your password"
+                  autoComplete="new-password"
+                />
+              </div>
             </>
+          )}
+
+          {/* Returning user — just password */}
+          {isReturning === true && (
+            <div className="auth-field">
+              <label className="auth-label">Password</label>
+              <input
+                className="auth-input"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Your password"
+                autoComplete="current-password"
+                autoFocus
+              />
+            </div>
           )}
 
           {error && <p className="auth-error">{error}</p>}
@@ -133,12 +177,13 @@ export default function AuthModal({ onClose }) {
             {checking ? 'Checking…' :
              loading   ? '…' :
              isReturning === null ? 'Continue →' :
-             "Let's eat 🍜"}
+             isReturning === true ? 'Sign in 🍜' :
+             'Create account 🍜'}
           </button>
         </form>
 
         {isReturning === true && (
-          <p className="auth-hint">We found your account — welcome back 👋</p>
+          <p className="auth-hint">Welcome back — enter your password to sign in.</p>
         )}
       </div>
     </div>
