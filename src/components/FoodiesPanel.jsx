@@ -20,15 +20,46 @@ const FLAG_NAMES = {
   '🇿🇦': 'South Africa',  '🇳🇬': 'Nigeria',       '🇷🇺': 'Russia',
 }
 
-export default function FoodiesPanel({ spots = [], onClose }) {
+export default function FoodiesPanel({ spots = [], votes = [], onClose }) {
   const { lang } = useLang()
-  const [viewMode,  setViewMode]  = useState('foodies')  // 'foodies' | 'countries'
+  const [viewMode,  setViewMode]  = useState('leaderboard')  // 'leaderboard' | 'foodies' | 'countries'
   const [collapsed, setCollapsed] = useState(false)
   const [audience,  setAudience]  = useState('all')
   const [pos,       setPos]       = useState(null)
   const [dragging,  setDragging]  = useState(false)
   const panelRef = useRef(null)
   const dragRef  = useRef(null)
+
+  /* ── Points leaderboard ──
+     +5 add a place · +1 vote for a place · +3 when a place you added hits 5 upvotes */
+  const pointsBoard = useMemo(() => {
+    const map = {}
+    const ensure = (u, flag) => {
+      if (!map[u]) map[u] = { username: u, flag: flag || '', points: 0, spotsAdded: 0, votesCast: 0, bonuses: 0 }
+      if (flag) map[u].flag = flag
+      return map[u]
+    }
+    // Discoveries (+5 each) and popularity bonus (+3 when valueUp >= 5)
+    for (const s of spots) {
+      const u = s.discovererUsername
+      if (!u || SYSTEM_USERS.has(u)) continue
+      const e = ensure(u, s.discovererFlag)
+      e.spotsAdded++
+      e.points += 5
+      if ((s.valueUp || 0) >= 5) { e.points += 3; e.bonuses++ }
+    }
+    // Votes cast (+1 each)
+    for (const v of votes) {
+      const u = v.username
+      if (!u || SYSTEM_USERS.has(u)) continue
+      const e = ensure(u, v.flag)
+      e.votesCast++
+      e.points += 1
+    }
+    return Object.values(map)
+      .sort((a, b) => b.points - a.points || b.spotsAdded - a.spotsAdded)
+      .slice(0, 20)
+  }, [spots, votes])
 
   /* ── Foodies leaderboard ── */
   const leaderboard = useMemo(() => {
@@ -121,6 +152,7 @@ export default function FoodiesPanel({ spots = [], onClose }) {
 
   const titleFoodies   = lang === 'en' ? 'Foodies'    : 'Thực khách'
   const titleCountries = lang === 'en' ? 'Countries'  : 'Quốc gia'
+  const titleLeader    = lang === 'en' ? 'Leaderboard' : 'Bảng xếp hạng'
 
   return (
     <div
@@ -131,6 +163,12 @@ export default function FoodiesPanel({ spots = [], onClose }) {
       {/* ── Header (drag handle) ── */}
       <div className="fd-header" onMouseDown={handleMouseDown}>
         <div className="rk-view-toggle">
+          <button
+            className={`rk-view-btn rk-view-leader ${viewMode === 'leaderboard' ? 'on' : ''}`}
+            onClick={() => setViewMode('leaderboard')}
+          >
+            🏅 {titleLeader}
+          </button>
           <button
             className={`rk-view-btn ${viewMode === 'foodies' ? 'on' : ''}`}
             onClick={() => setViewMode('foodies')}
@@ -151,6 +189,49 @@ export default function FoodiesPanel({ spots = [], onClose }) {
           <button className="fd-close" onClick={onClose}>✕</button>
         </div>
       </div>
+
+      {/* ── Leaderboard view (points) ── */}
+      {!collapsed && viewMode === 'leaderboard' && (
+        <>
+          <div className="fd-points-legend">
+            {lang === 'en'
+              ? '+5 add a spot · +1 vote · +3 when your spot hits 5 upvotes'
+              : '+5 thêm địa điểm · +1 bình chọn · +3 khi địa điểm đạt 5 lượt thích'}
+          </div>
+          <div className="fd-list">
+            {pointsBoard.length === 0 ? (
+              <p className="fd-empty">
+                {lang === 'en' ? 'No points yet — add a spot to start!' : 'Chưa có điểm — hãy thêm địa điểm!'}
+              </p>
+            ) : pointsBoard.map((u, i) => {
+              const rank  = i + 1
+              const medal = MEDALS[rank]
+              return (
+                <div key={u.username} className={`fd-row ${rank <= 3 ? 'fd-top' : ''}`}>
+                  <span className="fd-rank">
+                    {medal ? medal : <span className="fd-rank-num">#{rank}</span>}
+                  </span>
+                  <div className="fd-info">
+                    <div className="fd-name">
+                      {u.flag && <span className="fd-flag">{u.flag}</span>}
+                      {u.username}
+                    </div>
+                    <div className="fd-sub">
+                      {u.spotsAdded > 0 && `${u.spotsAdded} ${lang === 'en' ? 'spots' : 'địa điểm'}`}
+                      {u.spotsAdded > 0 && u.votesCast > 0 && ' · '}
+                      {u.votesCast > 0 && `${u.votesCast} ${lang === 'en' ? 'votes' : 'bình chọn'}`}
+                    </div>
+                  </div>
+                  <div className="fd-disc-col">
+                    <span className="fd-pts-num">{u.points}</span>
+                    <span className="fd-disc-label">{lang === 'en' ? 'pts' : 'điểm'}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
 
       {/* ── Foodies view ── */}
       {!collapsed && viewMode === 'foodies' && (

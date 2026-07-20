@@ -28,9 +28,10 @@ module.exports = async (req, res) => {
 
     const vote = {
       ...body,
-      id:     String(++store._nextId),
-      userId: payload.userId,
-      flag:   payload.flag || '',
+      id:       String(++store._nextId),
+      userId:   payload.userId,
+      username: payload.username,
+      flag:     payload.flag || '',
     }
     store.votes.push(vote)
     return res.status(201).json(vote)

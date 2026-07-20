@@ -225,7 +225,7 @@ function AppInner() {
         )}
 
         {/* ── Foodies panel ── */}
-        {showFoodies && <FoodiesPanel spots={spots} onClose={() => setShowFoodies(false)} />}
+        {showFoodies && <FoodiesPanel spots={spots} votes={votes} onClose={() => setShowFoodies(false)} />}
 
         {/* ── Map ── */}
         <MapView
