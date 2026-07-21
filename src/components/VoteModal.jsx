@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLang } from '../LangContext'
 
 export default function VoteModal({ type, onSubmit, onClose }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const [reasons, setReasons] = useState([])
+  const [photo,     setPhoto]     = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef(null)
 
   const tags  = type === 'up' ? t.vote_tags_up : t.vote_tags_down
   const title = type === 'up' ? t.vote_modal_up : t.vote_modal_down
@@ -15,8 +18,30 @@ export default function VoteModal({ type, onSubmit, onClose }) {
     )
   }
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setUploading(true)
+    try {
+      const res = await fetch('/api/upload', {
+        method:  'POST',
+        headers: { 'Content-Type': file.type, 'x-filename': `${Date.now()}-${file.name}` },
+        body:    file,
+      })
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+      const { url } = await res.json()
+      setPhoto(url)
+    } catch (err) {
+      console.error('Photo upload error:', err)
+      alert('Upload failed — please try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSubmit = () => {
-    onSubmit({ reasons })
+    onSubmit({ reasons, photo })
     onClose()
   }
 
@@ -45,10 +70,47 @@ export default function VoteModal({ type, onSubmit, onClose }) {
           </div>
         </div>
 
+        {/* ── Photo upload (optional) ── */}
+        <div className="vm-section">
+          <p className="vm-label">
+            {lang === 'en' ? 'Add a photo (optional)' : 'Thêm ảnh (không bắt buộc)'}
+          </p>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+          {photo ? (
+            <div className="vm-photo">
+              <img src={photo} alt="Your upload" />
+              <button
+                type="button"
+                className="vm-photo-remove"
+                onClick={() => setPhoto(null)}
+                title="Remove"
+              >✕</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={`vm-photo-add ${uploading ? 'loading' : ''}`}
+              onClick={() => !uploading && fileRef.current?.click()}
+              disabled={uploading}
+            >
+              <span className="vm-photo-icon">{uploading ? '…' : '📷'}</span>
+              {uploading
+                ? (lang === 'en' ? 'Uploading…' : 'Đang tải…')
+                : (lang === 'en' ? 'Add photo'  : 'Thêm ảnh')}
+            </button>
+          )}
+        </div>
+
         <button
           className={`vm-submit ${isUp ? 'up' : 'down'}`}
           onClick={handleSubmit}
-          disabled={reasons.length === 0}
+          disabled={reasons.length === 0 || uploading}
         >
           Vote
         </button>

@@ -97,12 +97,16 @@ function AppInner() {
     filters.categories.length +
     (filters.district ? 1 : 0)
 
-  const handleVote = async (id, type, reasons = []) => {
+  const handleVote = async (id, type, reasons = [], photo = null) => {
     if (!currentUser) { setShowAuth(true); return }
     const spot = spots.find(s => s.id === id)
     if (!spot) return
     const field   = type === 'up' ? 'valueUp' : 'valueDown'
-    const updated = { ...spot, [field]: (spot[field] || 0) + 1 }
+    const updated = {
+      ...spot,
+      [field]: (spot[field] || 0) + 1,
+      photos:  photo ? [...(spot.photos || []), photo] : spot.photos,
+    }
     const token   = getToken()
 
     const voteRes = await fetch('/api/votes', {
@@ -113,6 +117,7 @@ function AppInner() {
         type,
         flag:      currentUser.flag || '',
         reasons,
+        photo,
         createdAt: new Date().toISOString(),
       }),
     })

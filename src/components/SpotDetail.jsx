@@ -251,7 +251,7 @@ export default function SpotDetail({ spot, onClose, onVote, onUpdate, onDelete, 
         {voteModal && (
           <VoteModal
             type={voteModal}
-            onSubmit={({ reasons }) => onVote(spot.id, voteModal, reasons)}
+            onSubmit={({ reasons, photo }) => onVote(spot.id, voteModal, reasons, photo)}
             onClose={() => setVoteModal(null)}
           />
         )}

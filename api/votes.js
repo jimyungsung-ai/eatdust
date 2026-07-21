@@ -42,6 +42,8 @@ module.exports = async (req, res) => {
     if (spot) {
       const field = type === 'up' ? 'valueUp' : 'valueDown'
       spot[field] = (spot[field] || 0) + 1
+      // Attach an optional photo submitted with the vote
+      if (body.photo) spot.photos = [...(spot.photos || []), body.photo]
     }
 
     await saveStore(store)
