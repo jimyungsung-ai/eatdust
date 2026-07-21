@@ -957,22 +957,6 @@ input[type="range"] { width: 100%; accent-color: var(--text); cursor: pointer; }
   font-size: 15px; font-weight: 800;
   color: var(--text);
 }
-/* Highlighted Leaderboard tab — always a gold pill */
-.rk-view-leader {
-  align-self: center;
-  padding: 4px 11px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #fde047, #f59e0b);
-  color: #7c2d12 !important;
-  font-size: 12px; font-weight: 800;
-  box-shadow: 0 2px 6px rgba(245,158,11,0.35);
-}
-.rk-view-leader.on {
-  font-size: 13px;
-  color: #7c2d12 !important;
-  box-shadow: 0 3px 10px rgba(245,158,11,0.5);
-  outline: 2px solid rgba(245,158,11,0.35); outline-offset: 1px;
-}
 /* Points leaderboard bits */
 .fd-points-legend {
   margin: 0 14px 8px;

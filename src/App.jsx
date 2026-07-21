@@ -124,15 +124,20 @@ function AppInner() {
     }
     if (!voteRes.ok) return
 
-    await fetch(`/api/spots/${id}`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ [field]: updated[field] }),
-    })
+    // Server bumps the spot counter atomically and returns the updated spot
+    const { spot: savedSpot } = await voteRes.json().catch(() => ({ spot: null }))
+    const nextSpot = savedSpot || updated
 
-    setSpots(prev => prev.map(s => s.id === id ? updated : s))
-    setVotes(prev => [...prev, { spotId: id, type, flag: currentUser.flag || '', id: Date.now().toString() }])
-    setSelectedSpot(updated)
+    setSpots(prev => prev.map(s => s.id === id ? nextSpot : s))
+    setVotes(prev => [...prev, {
+      id:       Date.now().toString(),
+      spotId:   id,
+      type,
+      userId:   currentUser.id,
+      username: currentUser.username,
+      flag:     currentUser.flag || '',
+    }])
+    setSelectedSpot(nextSpot)
   }
 
   const handleSubmit = async (data) => {

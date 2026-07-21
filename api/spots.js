@@ -1,5 +1,5 @@
 'use strict'
-const store     = require('./_store')
+const { loadStore, saveStore } = require('./_store')
 const parseBody = require('./_parseBody')
 const { requireAuth } = require('./_auth')
 
@@ -12,6 +12,8 @@ const CORS = {
 module.exports = async (req, res) => {
   Object.entries(CORS).forEach(([k, v]) => res.setHeader(k, v))
   if (req.method === 'OPTIONS') return res.status(200).end()
+
+  const store = await loadStore()
 
   if (req.method === 'GET') return res.status(200).json(store.spots)
 
@@ -39,6 +41,7 @@ module.exports = async (req, res) => {
       createdAt: new Date().toISOString(),
     })
 
+    await saveStore(store)
     return res.status(201).json(spot)
   }
 

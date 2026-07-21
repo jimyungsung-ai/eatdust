@@ -1,5 +1,5 @@
 'use strict'
-const store     = require('./_store')
+const { loadStore, saveStore } = require('./_store')
 const parseBody = require('./_parseBody')
 const { requireAuth } = require('./_auth')
 
@@ -12,6 +12,8 @@ const CORS = {
 module.exports = async (req, res) => {
   Object.entries(CORS).forEach(([k, v]) => res.setHeader(k, v))
   if (req.method === 'OPTIONS') return res.status(200).end()
+
+  const store = await loadStore()
 
   if (req.method === 'GET') return res.status(200).json(store.votes)
 
@@ -34,7 +36,16 @@ module.exports = async (req, res) => {
       flag:     payload.flag || '',
     }
     store.votes.push(vote)
-    return res.status(201).json(vote)
+
+    // Increment the spot's counter in the same save (atomic — no separate PATCH)
+    const spot = store.spots.find(s => s.id === spotId)
+    if (spot) {
+      const field = type === 'up' ? 'valueUp' : 'valueDown'
+      spot[field] = (spot[field] || 0) + 1
+    }
+
+    await saveStore(store)
+    return res.status(201).json({ vote, spot: spot || null })
   }
 
   res.status(405).end()

@@ -164,10 +164,10 @@ export default function FoodiesPanel({ spots = [], votes = [], onClose }) {
       <div className="fd-header" onMouseDown={handleMouseDown}>
         <div className="rk-view-toggle">
           <button
-            className={`rk-view-btn rk-view-leader ${viewMode === 'leaderboard' ? 'on' : ''}`}
+            className={`rk-view-btn ${viewMode === 'leaderboard' ? 'on' : ''}`}
             onClick={() => setViewMode('leaderboard')}
           >
-            🏅 {titleLeader}
+            {titleLeader}
           </button>
           <button
             className={`rk-view-btn ${viewMode === 'foodies' ? 'on' : ''}`}
