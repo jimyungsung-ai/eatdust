@@ -41,6 +41,7 @@ export default function VoteModal({ type, onSubmit, onClose }) {
   }
 
   const handleSubmit = () => {
+    if (reasons.length === 0 || !photo || uploading) return
     onSubmit({ reasons, photo })
     onClose()
   }
@@ -70,10 +71,10 @@ export default function VoteModal({ type, onSubmit, onClose }) {
           </div>
         </div>
 
-        {/* ── Photo upload (optional) ── */}
+        {/* ── Photo upload (required) ── */}
         <div className="vm-section">
           <p className="vm-label">
-            {lang === 'en' ? 'Add a photo (optional)' : 'Thêm ảnh (không bắt buộc)'}
+            {lang === 'en' ? 'Add a photo (required)' : 'Thêm ảnh (bắt buộc)'}
           </p>
           <input
             ref={fileRef}
@@ -110,7 +111,7 @@ export default function VoteModal({ type, onSubmit, onClose }) {
         <button
           className={`vm-submit ${isUp ? 'up' : 'down'}`}
           onClick={handleSubmit}
-          disabled={reasons.length === 0 || uploading}
+          disabled={reasons.length === 0 || !photo || uploading}
         >
           Vote
         </button>

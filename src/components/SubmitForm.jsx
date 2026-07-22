@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { CATEGORIES, DISTRICTS } from '../App'
 import { useLang } from '../LangContext'
 
@@ -16,8 +16,33 @@ export default function SubmitForm({ initialLocation, onSubmit, onClose }) {
   })
   const [gpsLoading, setGpsLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [photo,     setPhoto]     = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef(null)
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setUploading(true)
+    try {
+      const res = await fetch('/api/upload', {
+        method:  'POST',
+        headers: { 'Content-Type': file.type, 'x-filename': `${Date.now()}-${file.name}` },
+        body:    file,
+      })
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+      const { url } = await res.json()
+      setPhoto(url)
+    } catch (err) {
+      console.error('Photo upload error:', err)
+      alert('Upload failed — please try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const useGPS = () => {
     if (!navigator.geolocation) return alert(t.loc_required)
@@ -35,6 +60,7 @@ export default function SubmitForm({ initialLocation, onSubmit, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.lat || !form.lng) return alert(t.loc_required)
+    if (!photo) return alert(lang === 'en' ? 'Please add a photo.' : 'Vui lòng thêm ảnh.')
     setSubmitting(true)
     try {
       await onSubmit({
@@ -42,6 +68,7 @@ export default function SubmitForm({ initialLocation, onSubmit, onClose }) {
         price: parseInt(form.price, 10),
         lat:   parseFloat(form.lat),
         lng:   parseFloat(form.lng),
+        photos: [photo],
       })
     } finally {
       setSubmitting(false)
@@ -135,9 +162,45 @@ export default function SubmitForm({ initialLocation, onSubmit, onClose }) {
               value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} />
           </div>
 
+          <div className="sf-section">
+            <label className="sf-label">
+              {lang === 'en' ? 'Photo (required)' : 'Ảnh (bắt buộc)'}
+            </label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+            {photo ? (
+              <div className="vm-photo">
+                <img src={photo} alt="Your upload" />
+                <button
+                  type="button"
+                  className="vm-photo-remove"
+                  onClick={() => setPhoto(null)}
+                  title="Remove"
+                >✕</button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className={`vm-photo-add ${uploading ? 'loading' : ''}`}
+                onClick={() => !uploading && fileRef.current?.click()}
+                disabled={uploading}
+              >
+                <span className="vm-photo-icon">{uploading ? '…' : '📷'}</span>
+                {uploading
+                  ? (lang === 'en' ? 'Uploading…' : 'Đang tải…')
+                  : (lang === 'en' ? 'Add photo'  : 'Thêm ảnh')}
+              </button>
+            )}
+          </div>
+
           <div className="sf-tip">{t.tip}</div>
 
-          <button type="submit" className="sf-submit" disabled={submitting}>
+          <button type="submit" className="sf-submit" disabled={submitting || uploading || !photo}>
             {submitting ? t.submitting : t.submit_btn}
           </button>
         </form>
